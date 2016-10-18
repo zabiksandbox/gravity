@@ -34,6 +34,7 @@ function lateUpdate(){
     }
 }
 function frameUpdate(){
+        
         for(i=0;i<World.length;i++){
     		for(e=0;e<World.length;e++){
                 if(typeof World[i] === "undefined")
@@ -115,6 +116,8 @@ function frameUpdate(){
         for(var i in World){
     			World[i].Move();
     	}
+        
+        fabric.util.requestAnimFrame(frameUpdate, Game.frame.getElement());
         Game.frame.renderAll();
 };
 function updateinfo(){
@@ -233,10 +236,11 @@ Game=function(){
 		  offsetX: 0,
 		  offsetY: 0
 		}, this.frame.renderAll.bind(this.frame));
+        frameUpdate();
 	}
-	this.interval=setInterval(function(){
+	/*this.interval=setInterval(function(){
     	frameUpdate();
-	},this.speed);
+	},this.speed);*/
 
 	
 }
