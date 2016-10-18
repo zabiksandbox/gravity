@@ -28,7 +28,11 @@ fabric.Object.prototype.toObject = (function (toObject) {
     };
 })(fabric.Object.prototype.toObject);
 
-
+function lateUpdate(){
+    for(i=0;i<World.length;i++){
+        World[i].checkColor();
+    }
+}
 function frameUpdate(){
         for(i=0;i<World.length;i++){
     		for(e=0;e<World.length;e++){
@@ -130,6 +134,16 @@ fobject=function(x,y,m,force){
 			this.force.x+=x;
 			this.force.y+=y;
 		};
+        this.checkColor=function(){
+            if(this.mass>10000&&this.dom.fill=='rgb(255,165,84)'){
+				this.dom.fill='black';
+				this.dom.set('shadow','0px 0px 0px #ffffff');
+		    } else {
+                rgb=colorTemperatureToRGB(this.mass*3.5+2660);  
+                this.dom.fill='rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')';
+                this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
+            }
+        };
 		this.Move=function(){
             //trenie
 //          this.force.x=this.force.x*0.99;
@@ -169,17 +183,10 @@ fobject=function(x,y,m,force){
             	else{
 					this.position.y=Game.frame.getHeight()-this.radius;
 				}
-            	
             }
-            
 			this.dom.set('left',this.position.x);
 			this.dom.set('top',this.position.y);
 			this.dom.set('radius',this.radius);
-			
-			if(this.mass>10000&&this.dom.fill=='white'){
-				this.dom.fill='black';
-				this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px #ffffff');
-			}
 		}
         this.explode=function(){
         }
@@ -193,7 +200,7 @@ fobject=function(x,y,m,force){
 			this.position.y=y;
 			this.dom = new fabric.Circle({
 			  radius: this.radius, 
-			  fill: 'white', 
+			  fill: 'rgb(255,165,84)', 
 			  left: this.position.x, 
 			  top: this.position.y,
 			  shadow: '0px 0px 5px #FFFF00',
@@ -237,6 +244,10 @@ $(document).ready(function(){
 	World=[];
 	Game=new Game();
 	Game.start();
+    setInterval(function(){
+    	lateUpdate();
+	},1000);
+    
 	$('.gravity .val').text(Game.gravity);
 	$('.gravity input').val(Game.gravity*10);
     /*$('.upper-canvas').click(function(e){

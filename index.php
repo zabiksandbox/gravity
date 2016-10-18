@@ -2,6 +2,7 @@
 <head>
 	<script src='jquery.js'></script>
 	<script src='fabric.js'></script>
+    <script src='colorTempToRGB.js'></script>
 	<script src='js.js'></script>
 </head>
 <style>
