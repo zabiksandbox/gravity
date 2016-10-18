@@ -28,11 +28,6 @@ fabric.Object.prototype.toObject = (function (toObject) {
     };
 })(fabric.Object.prototype.toObject);
 
-function lateUpdate(){
-    for(i=0;i<World.length;i++){
-        World[i].checkColor();
-    }
-}
 function frameUpdate(){
         
         for(i=0;i<World.length;i++){
@@ -50,9 +45,8 @@ function frameUpdate(){
                         ry=(World[i].position.y-World[e].position.y);
                         //f - gravity
                         f =parseFloat(Game.gravity*((World[i].mass+World[e].mass)/Math.pow(r,2)));
-                        fe=parseFloat(1*((World[i].mass+World[e].mass)/Math.pow(r,2)));
-                        fe=0;
-                        if(Math.abs(rx)>(World[i].radius+World[e].radius+10) || Math.abs(ry)>(World[i].radius+World[e].radius+10)){
+                        
+
                             if(Math.abs(rx)==Math.abs(ry) && rx!=0 && ry!=0 ){
                                 x=f;
                                 y=f;
@@ -66,22 +60,7 @@ function frameUpdate(){
                                 x=(f)*k;
                                 y=(f)-y;
                             }
-                        } else {
-                            if(Math.abs(rx)==Math.abs(ry) && rx!=0 && ry!=0 ){
-                                x=f-fe;
-                                y=f-fe;
-                                k=1;
-                            } else if (Math.abs(rx)>Math.abs(ry)){
-                                k=Math.abs(ry)/Math.abs(rx)
-                                y=(f-fe)*k;
-                                x=(f-fe)-y;
-                            } else {
-                                k=Math.abs(rx)/Math.abs(ry);
-                                x=(f-fe)*k;
-                                y=(f-fe)-x;
-                            }
-                            
-                        }
+                        
                         newmass=World[i].mass+World[e].mass;
                         range=World[i].radius+World[e].radius;
                         if(range<3)range=3;
@@ -99,24 +78,38 @@ function frameUpdate(){
                             World[maxk].force.x=(World[maxk].force.x+World[mink].force.x);
                             World[maxk].force.y=(World[maxk].force.y+World[mink].force.y);
                             World[maxk].mass=World[maxk].mass+World[mink].mass;
+                            World[maxk].checkColor();
                             World[mink].remove();
                         } else {
                             if(World[i].position.x>World[e].position.x) x=x*-1;
                             if(World[i].position.y>World[e].position.y) y=y*-1;
-                            World[i].addForce(x,y);    
+                            World[i].addForce(x,y);  
+                              
                             xx=-1*0.0000011;
 	                        yy=-1*0.0000011;
 	                        if(World[i].position.x>World[e].position.x) xx=xx*-1;
 	                        if(World[i].position.y>World[e].position.y) yy=yy*-1;
-	                           World[i].addForce(xx,yy);
+	                        World[i].addForce(xx,yy);
                         }
                     
         	}
     	}
+        
         for(var i in World){
     			World[i].Move();
     	}
         
+        var time = Date.now();
+        frames++;
+
+        if ( time > prevTime + 1000 ) {
+          fps = Math.round( ( frames * 1000 ) / ( time - prevTime ) );
+          prevTime = time;
+          frames = 0;
+
+          msg.setText("FPS: " + fps + "/" + myfps);
+        }
+    
         fabric.util.requestAnimFrame(frameUpdate, Game.frame.getElement());
         Game.frame.renderAll();
 };
@@ -212,8 +205,9 @@ fobject=function(x,y,m,force){
 			  selectable:false,
 			  originX:'center',
 			  originY:'center' 
-		  
 			});
+            this.dom.vx=0;
+            this.dom.vy=0;
 			Game.frame.add(this.dom);
 			World.push(this);
 			updateinfo();
@@ -221,11 +215,14 @@ fobject=function(x,y,m,force){
 		this.init();
 		return this;
 	}
+    
+    
+    
+myfps = 60;
 Game=function(){
 	this.pong=true;
 	this.gravity=0.1;
 	this.frame='';
-	this.speed=10;
 	this.defmass=1;
 	this.start=function(){
 		this.frame=new fabric.Canvas('frame',{width:$(window).width(),height:$(window).height(),renderOnAddRemove:false,});	
@@ -235,22 +232,27 @@ Game=function(){
 		  repeat: 'repeat',
 		  offsetX: 0,
 		  offsetY: 0
-		}, this.frame.renderAll.bind(this.frame));
-        frameUpdate();
-	}
-	/*this.interval=setInterval(function(){
-    	frameUpdate();
-	},this.speed);*/
+		});
+        msg = new fabric.Text('FPS: 0/' + myfps, {
+          fontFamily: 'Arial',
+          fontSize: 12,
+          fill: 'white',
+          fontWeight: 'bold',
+          left: 10,
+          top: 15,
+          selectable: false
+        });
+        Game.frame.add(msg);
 
-	
+        frames = 0;
+        startTime = Date.now(), prevTime = startTime;
+        frameUpdate();
+	}	
 }
 $(document).ready(function(){
 	World=[];
 	Game=new Game();
 	Game.start();
-    setInterval(function(){
-    	lateUpdate();
-	},1000);
     
 	$('.gravity .val').text(Game.gravity);
 	$('.gravity input').val(Game.gravity*10);
