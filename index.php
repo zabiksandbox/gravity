@@ -1,8 +1,8 @@
 <html>
 <head>
-	<script src='jquery.js?1'></script>
-	<script src='fabric/dist/fabric.js?1'></script>
-	<script src='js.js?1'></script>
+	<script src='jquery.js'></script>
+	<script src='fabric.js'></script>
+	<script src='js.js'></script>
 </head>
 <style>
 #frame {cursor: crosshair; overflow: hidden; width:100%; heght:100%;}
