@@ -133,8 +133,8 @@ fobject=function(x,y,m,force){
         this.checkColor=function(){
             if(this.mass>10000&&this.dom.fill=='rgb(255,165,84)'){
 				this.dom.fill='black';
-				this.dom.set('shadow','0px 0px 0px #ffffff');
-		    } else {
+				this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px #000000');
+		    } else if(this.mass<10000) {
                 rgb=colorTemperatureToRGB(this.mass*3.5+2660);  
                 this.dom.fill='rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')';
                 this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
