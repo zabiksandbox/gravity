@@ -29,7 +29,7 @@ fabric.Object.prototype.toObject = (function (toObject) {
 })(fabric.Object.prototype.toObject);
 
 function frameUpdate(){
-        
+        if(Game.pause===false){
         for(i=0;i<World.length;i++){
     		for(e=0;e<World.length;e++){
                 if(typeof World[i] === "undefined")
@@ -38,32 +38,28 @@ function frameUpdate(){
                     continue;
                     
                     
-                        var x=0;
-                        var y=0;
-                        var r=Math.sqrt(Math.pow(Math.abs(World[i].position.x-World[e].position.x),2)+Math.pow(Math.abs(World[i].position.y-World[e].position.y),2));
-                        var rx=(World[i].position.x-World[e].position.x);
-                        var ry=(World[i].position.y-World[e].position.y);
-                        //f - gravity
-                        var f =parseFloat(Game.gravity*((World[i].mass+World[e].mass)/Math.pow(r,2)));
+                        var x=0,
+                            y=0,
+                            r=Math.sqrt(Math.pow(Math.abs(World[i].position.x-World[e].position.x),2)+Math.pow(Math.abs(World[i].position.y-World[e].position.y),2)),
+                            rx=(World[i].position.x-World[e].position.x),
+                            ry=(World[i].position.y-World[e].position.y),
+                            f=parseFloat(Game.gravity*((World[i].mass+World[e].mass)/Math.pow(r,2)));
              
                         if(r>0){
 							x=f*(rx/r);
      						y=f*(ry/r);     						
 						}
                         
-                        newmass=World[i].mass+World[e].mass;
-                        range=World[i].radius+World[e].radius;
+                        var newmass=World[i].mass+World[e].mass;
+                        var range=World[i].radius+World[e].radius;
                         if(range<3)range=3;
-                        if(rx<(range) && rx>(range)*-1 && ry>(range)*-1 && ry<(range)){                     
-                            if(World[i].mass>World[e].mass){
+                        if(r<range){                     
+                            if(World[i].mass>=World[e].mass){
                                 maxk=i;
                                 mink=e;
-                            } else if(World[i].mass<World[e].mass){
+                            } else {
                                 maxk=e;
                                 mink=i;
-                            } else {
-                                maxk=i;
-                                mink=e;
                             }
                             World[maxk].force.x=(World[maxk].force.x+World[mink].force.x);
                             World[maxk].force.y=(World[maxk].force.y+World[mink].force.y);
@@ -71,9 +67,8 @@ function frameUpdate(){
                             World[maxk].checkColor();
                             World[mink].remove();
                         } else {
-                            x=x*-1;
-                            y=y*-1;
-                            World[i].addForce(x,y);  
+                            
+                            World[i].addForce(-x,-y);  
                         }
                     
         	}
@@ -93,7 +88,7 @@ function frameUpdate(){
 
           msg.setText("FPS: " + fps + "/" + myfps);
         }
-    
+        }
         fabric.util.requestAnimFrame(frameUpdate, Game.frame.getElement());
         Game.frame.renderAll();
 };
@@ -115,10 +110,10 @@ fobject=function(x,y,m,force){
 			this.force.y+=y;
 		};
         this.checkColor=function(){
-            if(this.mass>10000&&this.dom.fill=='rgb(255,68,0)'){
+            if(this.mass>10000&&this.dom.fill!='black'){
 				this.dom.fill='black';
 				this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px #000000');
-		    } else if(this.mass<10000) {
+		    } else if(this.mass<10001) {
                 rgb=colorTemperatureToRGB(this.mass*3.5+1000);  
                 //console.log('rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
                 this.dom.fill='rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')';
@@ -133,7 +128,7 @@ fobject=function(x,y,m,force){
 			this.position.x+=this.force.x/this.mass;
 			this.position.y+=this.force.y/this.mass;
             if((this.position.x+this.radius)>Game.frame.getWidth()) {
-            	if(Game.pong===false)	
+            	if(Game.inf===false)	
             		console.clear(); //this.remove();
             	else{
 					this.position.x=0+this.radius;
@@ -141,7 +136,7 @@ fobject=function(x,y,m,force){
             	
             }
             if((this.position.y+this.radius)>Game.frame.getHeight()){
-            	if(Game.pong===false)	
+            	if(Game.inf===false)	
             		console.clear(); //this.remove();
             	else{
 					this.position.y=0+this.radius;
@@ -150,7 +145,7 @@ fobject=function(x,y,m,force){
             }
             
             if(this.position.x-this.radius<0) {
-            	if(Game.pong===false)	
+            	if(Game.inf===false)	
             		console.clear(); //this.remove(); 
             	else
             	{
@@ -159,7 +154,7 @@ fobject=function(x,y,m,force){
             	
             }
             if(this.position.y-this.radius<0) {
-            	if(Game.pong===false)	
+            	if(Game.inf===false)	
             		console.clear(); //this.remove(); 
             	else{
 					this.position.y=Game.frame.getHeight()-this.radius;
@@ -205,7 +200,8 @@ fobject=function(x,y,m,force){
     
 myfps = 60;
 Game=function(){
-	this.pong=true;
+    this.pause=false;
+	this.inf=true;
 	this.gravity=0.1;
 	this.frame='';
 	this.defmass=1;
@@ -225,7 +221,9 @@ Game=function(){
           fontWeight: 'bold',
           left: 10,
           top: 15,
-          selectable: false
+          selectable: false,
+          hasRotatingPoint:false,
+	      hasControls:false,
         });
         Game.frame.add(msg);
 
@@ -234,6 +232,13 @@ Game=function(){
         frameUpdate();
 	}	
 }
+
+
+
+
+
+
+
 $(document).ready(function(){
 	World=[];
 	Game=new Game();
@@ -256,28 +261,30 @@ $(document).ready(function(){
     var lx = 0; 
     var ly = 0;
     $('.upper-canvas').mousedown(function(e){
-        lx = e.pageX; ly = e.pageY;
+        lx = e.pageX;
+        ly = e.pageY;
     })
     $('.upper-canvas').mouseup(function(e){
         World[World.length]=new fobject(e.pageX,e.pageY);
-        World[World.length-1].force.x = (e.pageX - lx) * World[World.length-1].mass / 100;
-        World[World.length-1].force.y = (e.pageY - ly) * World[World.length-1].mass / 100;
-        
+        World[World.length-1].force.x = (e.pageX - lx) * World[World.length-1].mass / 50;
+        World[World.length-1].force.y = (e.pageY - ly) * World[World.length-1].mass / 50;
     });
-
+    $('.pause input').click(function(){
+    	Game.pause===true?Game.pause=false:Game.pause=true;
+    })
     $('.gravity input').change(function(){
     	Game.gravity=$(this).val()/10;    	
     	$('.gravity .val').text($(this).val()/10)
     	if($(this).val()<0){
-			$('.pong input').prop('checked',true);
-			Game.pong=true;
+			$('.inf input').prop('checked',true);
+			Game.inf=true;
 		}
     })
-    $('.pong input').change(function(){
+    $('.inf input').change(function(){
     	if($(this).prop('checked')==true){
-			Game.pong=true;
+			Game.inf=true;
 		} else {
-			Game.pong=false;
+			Game.inf=false;
 		}
     });
     $('.defmass input').change(function(){
@@ -292,9 +299,9 @@ $(document).ready(function(){
     });
 	$('.info').css({'font-size':$('#frame').width()/100})
     setInterval(function(){
-        if($('.randomgen input.randomgen').prop('checked') && World.length<$('.randomgen .limit').val()){
+        if($('.randomgen input.randomgen').prop('checked') && World.length<$('.randomgen .limit').val() && Game.pause===false){
             World[World.length]=new fobject(getRandomInt(0,$('#frame').width()),getRandomInt(0,$('#frame').height()));
-            World[World.length-1].addForce(getRandom(-1,1)/10,getRandom(-1,1)/10)
+            World[World.length-1].addForce(getRandom(-5,5)/10,getRandom(-5,5)/10)
         }
     },500)
 });
