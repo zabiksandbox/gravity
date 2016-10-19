@@ -38,28 +38,18 @@ function frameUpdate(){
                     continue;
                     
                     
-                        x=0;
-                        y=0;
-                        r=Math.sqrt(Math.pow(Math.abs(World[i].position.x-World[e].position.x),2)+Math.pow(Math.abs(World[i].position.y-World[e].position.y),2));
-                        rx=(World[i].position.x-World[e].position.x);
-                        ry=(World[i].position.y-World[e].position.y);
+                        var x=0;
+                        var y=0;
+                        var r=Math.sqrt(Math.pow(Math.abs(World[i].position.x-World[e].position.x),2)+Math.pow(Math.abs(World[i].position.y-World[e].position.y),2));
+                        var rx=(World[i].position.x-World[e].position.x);
+                        var ry=(World[i].position.y-World[e].position.y);
                         //f - gravity
-                        f =parseFloat(Game.gravity*((World[i].mass+World[e].mass)/Math.pow(r,2)));
-                        
-
-                            if(Math.abs(rx)==Math.abs(ry) && rx!=0 && ry!=0 ){
-                                x=f;
-                                y=f;
-                                k=1;
-                            } else if (Math.abs(rx)>Math.abs(ry)){
-                                k=Math.abs(ry)/Math.abs(rx)
-                                y=(f)*k;
-                                x=(f)-x;
-                            } else {
-                                k=Math.abs(rx)/Math.abs(ry);
-                                x=(f)*k;
-                                y=(f)-y;
-                            }
+                        var f =parseFloat(Game.gravity*((World[i].mass+World[e].mass)/Math.pow(r,2)));
+             
+                        if(r>0){
+							x=f*(rx/r);
+     						y=f*(ry/r);     						
+						}
                         
                         newmass=World[i].mass+World[e].mass;
                         range=World[i].radius+World[e].radius;
@@ -81,15 +71,9 @@ function frameUpdate(){
                             World[maxk].checkColor();
                             World[mink].remove();
                         } else {
-                            if(World[i].position.x>World[e].position.x) x=x*-1;
-                            if(World[i].position.y>World[e].position.y) y=y*-1;
+                            x=x*-1;
+                            y=y*-1;
                             World[i].addForce(x,y);  
-                              
-                            xx=-1*0.0000011;
-	                        yy=-1*0.0000011;
-	                        if(World[i].position.x>World[e].position.x) xx=xx*-1;
-	                        if(World[i].position.y>World[e].position.y) yy=yy*-1;
-	                        World[i].addForce(xx,yy);
                         }
                     
         	}
@@ -131,11 +115,12 @@ fobject=function(x,y,m,force){
 			this.force.y+=y;
 		};
         this.checkColor=function(){
-            if(this.mass>10000&&this.dom.fill=='rgb(255,165,84)'){
+            if(this.mass>10000&&this.dom.fill=='rgb(255,68,0)'){
 				this.dom.fill='black';
 				this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px #000000');
 		    } else if(this.mass<10000) {
-                rgb=colorTemperatureToRGB(this.mass*3.5+2660);  
+                rgb=colorTemperatureToRGB(this.mass*3.5+1000);  
+                //console.log('rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
                 this.dom.fill='rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')';
                 this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
             }
@@ -196,7 +181,6 @@ fobject=function(x,y,m,force){
 			this.position.y=y;
 			this.dom = new fabric.Circle({
 			  radius: this.radius, 
-			  fill: 'rgb(255,165,84)', 
 			  left: this.position.x, 
 			  top: this.position.y,
 			  shadow: '0px 0px 5px #FFFF00',
@@ -209,6 +193,7 @@ fobject=function(x,y,m,force){
             this.dom.vx=0;
             this.dom.vy=0;
 			Game.frame.add(this.dom);
+			this.checkColor();
 			World.push(this);
 			updateinfo();
 		}
@@ -306,6 +291,12 @@ $(document).ready(function(){
     	}
     });
 	$('.info').css({'font-size':$('#frame').width()/100})
+    setInterval(function(){
+        if($('.randomgen input.randomgen').prop('checked') && World.length<$('.randomgen .limit').val()){
+            World[World.length]=new fobject(getRandomInt(0,$('#frame').width()),getRandomInt(0,$('#frame').height()));
+            World[World.length-1].addForce(getRandom(-1,1)/10,getRandom(-1,1)/10)
+        }
+    },500)
 });
 $(window).resize(function(){
 	Game.frame.setWidth($(window).width());
