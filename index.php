@@ -3,7 +3,7 @@
 	<script src='jquery.js'></script>
 	<script src='fabric.js'></script>
     <script src='colorTempToRGB.js'></script>
-	<?if($_GET['new']==1){?><script src='js_new.js'></script><?}else{?><script src='js.js?6'></script><?}?>
+	<?if($_GET['new']==1){?><script src='js_new.js'></script><?}else{?><script src='js.js?7'></script><?}?>
 </head>
 <style>
 #frame {cursor: crosshair; overflow: hidden; width:100%; heght:100%;}
@@ -20,13 +20,15 @@ body{margin:0px; padding:0px; overflow: hidden; width: 100%; height:100%; font-f
 <body>
 <div class='info'>
     <div class='stars'>Particles: <span class='val'></span></div>
-    <div class='gravity'>Gravity: <input type='range' min='-50'  value='1' max='50'/><span class='val'>0.1</span></div>
+    <div class='gravity'>Gravity: <input type='range' min='-150'  value='1' max='150'/><span class='val'>0.1</span></div>
     <div class='inf'>Inf space: <input type='checkbox' checked="checked"/></div>
     <div class='freez'><input type='button' value='Reset force'/></div>
     <div class='grid'><input type='button' value='do grid' onclick="dogrid();"/></div>
     <div class='randomgen'><label>Autogen:<input class='randomgen' type='checkbox'/></label>limit <input type='number' class='limit' value='100'></div>
+    <div class='collapse'><label>Collision: <input type='checkbox' checked="checked"/></label></div>
     <div class='pause'><input type='button' value='Pause' /></div>
-    <?if($_GET['new']==1){?><div class='kulon'>Kulon Low <input type='checkbox'/></div><?}?>
+    <div class='clear'><input type='button' value='Clear' /></div>
+    
 </div>
 <div id='templateobject'><div class='round'></div></div>
 <div id='#particle'><div class='round'></div></div>
