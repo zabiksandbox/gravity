@@ -29,8 +29,32 @@ fabric.Object.prototype.toObject = (function (toObject) {
 })(fabric.Object.prototype.toObject);
 
 function frameUpdate(){
-    if(Game.pause===false){
-        for(i=0;i<World.length;i++){
+    if(Game.pause==false){
+        if(Game.collapse===true){
+            moveStars();
+        } else {
+            moveAtoms();
+        }
+        
+        for(i in World){
+            World[i].Move();
+        }
+        
+        var time = Date.now();
+        frames++;
+
+        if(time>prevTime+1000){
+            fps = Math.round( ( frames * 1000 ) / ( time - prevTime ) );
+            prevTime = time;
+            frames = 0;
+            msg.setText("FPS: " + fps + "/" + myfps);
+        }
+    }
+    fabric.util.requestAnimFrame(frameUpdate, Game.frame.getElement());
+    Game.frame.renderAll();
+};
+function moveStars(){
+    for(i=0;i<World.length;i++){
         	if(typeof World[i] === "undefined" ) continue;
             for(e=0;e<World.length;e++){
                 
@@ -53,11 +77,9 @@ function frameUpdate(){
                range=iam.radius+target.radius;
                
                if(range<3)range=3;
-               if(Game.collapse===false){
-					range+=10;
-               }
-               if(r<range){
-               		if(Game.collapse===true){
+               
+               if(Game.collapse===true){
+                   if(r<range){
 	                   if(iam.mass>=target.mass){
 	                       maxk=iam;
 	                       mink=target;
@@ -70,30 +92,59 @@ function frameUpdate(){
 	                   maxk.mass=maxk.mass+mink.mass;
 	                   maxk.checkColor();
 	                   mink.remove();
+                   }else{
+                       iam.addForce(x*-1,y*-1);  
                    }
-               }else{
-                   iam.addForce(-x,-y);  
-               }
+               } 
             }
         }
-        
-        for(i in World){
-            World[i].Move();
+}
+function moveAtoms(){
+    for(i=0;i<World.length;i++){
+        	if(typeof World[i] === "undefined" ) continue;
+            for(e=0;e<World.length;e++){
+                
+                if(e === i || typeof World[e] === "undefined" ) continue;
+				iam =     World[i];
+                target =  World[e];
+                var x=0,
+                    y=0,
+                    r=Math.sqrt(Math.pow(Math.abs(iam.position.x-target.position.x),2)+Math.pow(Math.abs(iam.position.y-target.position.y),2)),
+                    rx=(iam.position.x-target.position.x),
+                    ry=(iam.position.y-target.position.y),
+                    f=parseFloat(Game.gravity*((iam.mass*target.mass)/Math.pow(r,2)));
+    
+               if(r>0){
+                   x=f*(rx/r);
+                   y=f*(ry/r);                             
+               }
+                        
+               newmass=iam.mass+target.mass;
+               range=iam.radius+target.radius;
+               
+               if(range<3)range=3;
+               
+               if(r<range){
+                   if(iam.mass>=target.mass){
+                       maxk=iam;
+                       mink=target;
+                   }else{
+                       maxk=target;
+                       mink=iam;
+                   }
+	               maxk.force.x=(maxk.force.x+mink.force.x);
+  	               maxk.force.y=(maxk.force.y+mink.force.y);
+  	               maxk.mass=maxk.mass+mink.mass;
+  	               maxk.checkColor();
+   	               mink.remove();
+              }else if (r<range+50){
+                  iam.addForce(x*0.2,y*0.2);                       
+              } else{
+                   iam.addForce(x*-1,y*-1); 
+              }
+           }
         }
-        
-        var time = Date.now();
-        frames++;
-
-        if(time>prevTime+1000){
-            fps = Math.round( ( frames * 1000 ) / ( time - prevTime ) );
-            prevTime = time;
-            frames = 0;
-            msg.setText("FPS: " + fps + "/" + myfps);
-        }
-    }
-    fabric.util.requestAnimFrame(frameUpdate, Game.frame.getElement());
-    Game.frame.renderAll();
-};
+}
 function updateinfo(){
     $('.info .stars .val').text(World.length);
 };
@@ -122,8 +173,8 @@ fobject=function(x,y,m,force){
         this.position.y=0;
         this.addForce=function(x,y){
         	if(Game.collapse===false){
-	        	///this.force.x*=0.9999;
-    	        ///this.force.y*=0.9999;
+	        	this.force.x*=0.9999;
+    	        this.force.y*=0.9999;
             }
             this.force.x+=x;
             this.force.y+=y;
@@ -138,36 +189,26 @@ fobject=function(x,y,m,force){
                 rgb=colorTemperatureToRGB(this.mass*10+1000);  
                 //console.log('rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
                 this.dom.fill='rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')';
-                this.dom.set('shadow','0px 0px '+parseInt(this.radius*2)+'px rgb('+parseInt(rgb.r)+','+parseInt(rgb.g)+','+parseInt(rgb.b)+')');
+                this.dom.set('shadow','0px 0px '+parseInt((this.radius*4)>5?(this.radius*4):5)+'px '+this.dom.fill);
+             
             }
         };
         this.Move=function(){
             
             this.position.x+=this.force.x/this.mass;
             this.position.y+=this.force.y/this.mass;
-            if((this.position.x+this.radius)>Game.frame.getWidth()+Game.offset.x) {
-                if(Game.inf===true){    
+            if((this.position.x+this.radius)>Game.frame.getWidth()+Game.offset.x) {    
                     this.position.x=-Game.offset+this.radius;
-                }
-                
             }
             if((this.position.y+this.radius)>Game.frame.getHeight()+Game.offset.y){
-                if(Game.inf===true){   
                     this.position.y=-Game.offset+this.radius;
-                }
-                
             }
             
             if(this.position.x-this.radius<-Game.offset.x) {
-                if(Game.inf===true){
                     this.position.x=Game.frame.getWidth()+Game.offset-this.radius;                    
-                }
-                
             }
             if(this.position.y-this.radius<-Game.offset.y) {
-                if(Game.inf===true){    
                     this.position.y=Game.frame.getHeight()+Game.offset-this.radius;
-                }
             }
             this.dom.set('left',this.position.x);
             this.dom.set('top',this.position.y);
@@ -209,7 +250,6 @@ fobject=function(x,y,m,force){
 var myfps = 60;
 Game=function(){
     this.pause=false;
-    this.inf=true;
     this.gravity=0.1;
     this.frame='';
     this.defmass=1;
@@ -220,12 +260,7 @@ Game=function(){
     this.start=function(){
         this.frame=new fabric.Canvas('frame',{width:$(window).width(),height:$(window).height(),renderOnAddRemove:false,});    
         this.frame.selection = false; 
-        this.frame.setBackgroundColor({
-          source: 'space.png',
-          repeat: 'repeat',
-          offsetX: 0,
-          offsetY: 0
-        });
+        this.frame.setBackgroundColor('black');
         msg = new fabric.Text('FPS: 0/' + myfps, {
           fontFamily: 'Arial',
           fontSize: 12,
@@ -286,21 +321,11 @@ $(document).ready(function(){
     $('.pause input').click(function(){
         Game.pause===true?Game.pause=false:Game.pause=true;
     })
+    
     $('.gravity input').change(function(){
         Game.gravity=$(this).val()/10;        
         $('.gravity .val').text($(this).val()/10)
-        if($(this).val()<0){
-            $('.inf input').prop('checked',true);
-            Game.inf=true;
-        }
     })
-    $('.inf input').change(function(){
-        if($(this).prop('checked')==true){
-            Game.inf=true;
-        } else {
-            Game.inf=false;
-        }
-    });
     $('.clear input').click(function(){
         Game.pause=true;
         Game.frame.clear();
