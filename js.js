@@ -160,20 +160,17 @@ Game=function(){
         var d=iam.radius*2;
         if(Game.maxd<d) Game.maxd=d;
         
+        
         if(Game.maxv>Game.maxd){
-            if(Game.timescale>1){
-                Game.timescale=Game.timescale+0.1;    
-              //  console.log(Game.timescale);  
-            }  else {
-                Game.timescale=1;
-              //  console.log(Game.timescale);  
-            }
-        } else if(Game.maxv<Game.maxd){
-            if(Game.timescale<15&&Game.timescale>1){
-                Game.timescale=Game.timescale-1;    
-               // console.log(Game.timescale);  
+            //console.log(Game.maxv+'>'+Game.maxd+'   '+Game.timescale)
+            if(Game.timescale>1 && Game.timescale<=15){
+                Game.timescale=Game.timescale+2;    
+                //console.log(Game.timescale);
             } 
-        }
+        } 
+        if (Game.timescale>15) Game.timescale=15;
+        if (Game.timescale<1) Game.timescale=1;
+        
         
         
     };
